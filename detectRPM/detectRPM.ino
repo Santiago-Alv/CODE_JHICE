@@ -9,7 +9,7 @@ const int freq = 50;
 const int resolution = 12;
 const int MIN_PWM = 205;   
 // Parado del motor y el armado
-const int MAX_PWM = 410;   
+const int MAX_PWM = 385;   
 // Máxima potencia del motor
 
 // Configuración del sensor
@@ -18,6 +18,7 @@ unsigned long tiempoAnterior = 0;
 const int ranurasDisco = 20;
 // Ranuras del disco fisico
 
+String datoRecibido = "";
 // Función para contar los pulsos (Interrupción)
 void IRAM_ATTR contarPulsos() {
   pulsos++;
@@ -28,22 +29,27 @@ void setup() {
 
   // 1. Configuracion del sensor
   pinMode(pinSensor, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(pinSensor), contarPulsos, FALLING); 
+  attachInterrupt(digitalPinToInterrupt(pinSensor), contarPulsos, RISING); 
 
   // 2. Configurar el motor
   ledcAttach(escPin, freq, resolution);
 
   // 3. Proceso de armado
   Serial.println("Armando ESC... (5 segundos)");
-  ledcWrite(escPin, MIN_PWM); 
+  ledcWrite(escPin,240); 
   delay(5000); 
   Serial.println("¡Motor listo y Sensor activo!");
 }
 
 void loop() {
-  // Prueba de aceleracion 
-  int velocidadDePrueba = MIN_PWM + 40; 
-  ledcWrite(escPin, velocidadDePrueba);
+if (Serial.available() > 0) {
+  Serial.println("Dato recibido!");
+  datoRecibido = Serial.readStringUntil('\n');
+  datoRecibido.trim();
+  int datoInt = datoRecibido.toInt();
+  Serial.println(datoInt);
+  ledcWrite(escPin,datoInt);  
+}
 
   // CÁLCULO DE RPM (Cada 1 segundo)
   unsigned long tiempoActual = millis();
